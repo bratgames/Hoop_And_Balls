@@ -1,0 +1,11 @@
+===========================================
+Version 1.0.1
+===========================================
+- Delay manager activated
+- Haptic durations adjusted for Android platform
+- Added MultiScreenShotCapture.cs to project
+- DOTween's independent from timescale now (Burak İdilmek feedback)
+- Added "simulatePhone" bool to GameManager.cs for testing game on Editor like phone (Burak İdilmek feedback)
+- JMO confetti asset materials upgraded for URP (Burak İdilmek feedback)
+- Raycast Target options disabled from unneccessary objects on UI (Burak İdilmek feedback)
+===========================================
