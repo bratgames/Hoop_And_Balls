@@ -24,6 +24,7 @@ public class LevelMain : MonoBehaviour
     int newHookCost;
     int incomeUpgradeCost;
     [Header("Max Counts")]
+    public int upgradeIncreaseAmount;
     public int maxIncomeCount;
     public int maxBallCount;
     public int maxHookCount;
@@ -35,6 +36,7 @@ public class LevelMain : MonoBehaviour
     public float fastSpeed;
     public float fastSpeedTime;
 
+    public GameObject canvas;
     public static bool gameStarted;
     float timer;
     #region Singleton
@@ -92,6 +94,7 @@ public class LevelMain : MonoBehaviour
         }
         if(maxCircleUpgrade>circleUpgradeCount)
         {
+            Buttons[0].transform.GetComponentInChildren<Text>().text = circleUpgradeCost.ToString();
             if (EKTemplate.GameManager.instance.money < circleUpgradeCost)
             {
                 Buttons[0].GetComponent<Image>().overrideSprite = CloseSprite[0];
@@ -109,6 +112,7 @@ public class LevelMain : MonoBehaviour
         }
         if (maxIncomeCount>givingMoney)
         {
+            Buttons[1].transform.GetComponentInChildren<Text>().text = incomeUpgradeCost.ToString();
             if (EKTemplate.GameManager.instance.money < incomeUpgradeCost)
             {
                 Buttons[1].GetComponent<Image>().overrideSprite = CloseSprite[1];
@@ -163,12 +167,6 @@ public class LevelMain : MonoBehaviour
         }
 
     } 
-    void ButtonClose(int s)
-    {
-        Buttons[s].GetComponent<Image>().overrideSprite = CloseSprite[s];
-        Buttons[s].GetComponent<Button>().enabled = false;
-        Buttons[s].transform.GetComponentInChildren<Text>().text = "MAX";
-    }
     public void Clicker()
     {
         Haptic.LightTaptic();
@@ -183,15 +181,17 @@ public class LevelMain : MonoBehaviour
     {
         if (EKTemplate.GameManager.instance.money > circleUpgradeCost)
         {
-            Buttons[0].GetComponent<Animation>().Play();
-            Buttons[0].GetComponentInChildren<ParticleSystem>().Play();
-
+            ButtonActionSame(0);
             EKTemplate.GameManager.instance.AddMoney(-circleUpgradeCost);
             Circles[circleUpgradeCount].SetActive(true);
             EKTemplate.CameraManager.instance.CameraMove();
             circleUpgradeCount++;
             circleUpgradeCost = circleUpgradeCosts[circleUpgradeCount];
             Buttons[0].transform.GetComponentInChildren<Text>().text = circleUpgradeCost.ToString();
+            maxBallCount += upgradeIncreaseAmount;
+            maxHookCount += upgradeIncreaseAmount;
+            maxIncomeCount += 2;
+
         }
 
 
@@ -200,9 +200,7 @@ public class LevelMain : MonoBehaviour
     {
         if(EKTemplate.GameManager.instance.money>incomeUpgradeCost)
         {
-            Buttons[1].GetComponent<Animation>().Play();
-            Buttons[1].GetComponentInChildren<ParticleSystem>().Play();
-            EKTemplate.GameManager.instance.AddMoney(-incomeUpgradeCost);
+            ButtonActionSame(1);  
 
             incomeUpgradeCost = incomeMoneyAmounts[givingMoney];
             Buttons[1].transform.GetComponentInChildren<Text>().text = incomeUpgradeCost.ToString();
@@ -214,11 +212,7 @@ public class LevelMain : MonoBehaviour
     {
         if(EKTemplate.GameManager.instance.money >newBallCost)
         {
-            Buttons[2].GetComponent<Animation>().Play();
-            Buttons[2].GetComponentInChildren<ParticleSystem>().Play();
-            EKTemplate.GameManager.instance.AddMoney(-newBallCost);
-
-
+            ButtonActionSame(2);
             GameObject Ball = Instantiate(Resources.Load("Ball"), BallSpawnPoses[ballCount].position, Quaternion.identity) as GameObject;
             int rnd = Random.Range(0, 11);
             Ball.GetComponent<MeshRenderer>().material = Resources.Load("Colors/Color " + rnd) as Material;
@@ -230,9 +224,7 @@ public class LevelMain : MonoBehaviour
     {
         if (EKTemplate.GameManager.instance.money > newHookCost)
         {
-            Buttons[3].GetComponent<Animation>().Play();
-            Buttons[3].GetComponentInChildren<ParticleSystem>().Play();
-
+            ButtonActionSame(3);
             EKTemplate.GameManager.instance.AddMoney(-newHookCost);
             GameObject hook = Instantiate(Resources.Load("Hook"), HookSpawnPoses[hookCount].position, new Quaternion(0,0,0,0)) as GameObject;
             hook.transform.SetParent(HookSpawnPoses[hookCount]);
@@ -242,5 +234,18 @@ public class LevelMain : MonoBehaviour
             hookCount++;
             newHookCost = newHookCosts[hookCount]; 
         }
+    }
+    void ButtonClose(int s)
+    {
+        Buttons[s].GetComponent<Image>().overrideSprite = CloseSprite[s];
+        Buttons[s].GetComponent<Button>().enabled = false;
+        Buttons[s].transform.GetComponentInChildren<Text>().text = "MAX";
+    }
+    void ButtonActionSame(int c)
+    {
+        canvas.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceCamera;
+        EKTemplate.DelayManager.instance.Set(1f, () => canvas.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay);
+        Buttons[c].GetComponent<Animation>().Play();
+        Buttons[c].GetComponentInChildren<ParticleSystem>().Play();
     }
 }
