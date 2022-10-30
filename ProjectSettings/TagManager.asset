@@ -8,6 +8,8 @@ TagManager:
   - Ball
   - Ground
   - ForwardCollider
+  - Knife
+  - Balloon
   layers:
   - Default
   - TransparentFX

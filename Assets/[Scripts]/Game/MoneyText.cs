@@ -9,7 +9,10 @@ public class MoneyText : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        transform.DOMoveY(transform.position.y + 1, 0.5f).OnComplete(() => Destroy(gameObject));
+        transform.DOMoveY(transform.position.y + 1, 0.5f).OnComplete(() => {
+        });
+        transform.DOScale(Vector3.zero, 0.5f).SetEase(Ease.InBack).OnComplete(() => Destroy(gameObject));
+
     }
 
     // Update is called once per frame

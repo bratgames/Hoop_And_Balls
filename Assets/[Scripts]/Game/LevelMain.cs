@@ -3,39 +3,38 @@ using System.Collections.Generic;
 using UnityEngine;
 using Dreamteck.Splines;
 using UnityEngine.UI;
+using DG.Tweening;
 public class LevelMain : MonoBehaviour
 {
-    public List<Transform> BallSpawnPoses = new List<Transform>();
-    public List<Transform> HookSpawnPoses = new List<Transform>();
-
-    public GameObject[] Buttons,Circles;    
+    public GameObject[] Knifes, Circles, Buttons;    
     public Sprite[] OpenSprite, CloseSprite;
-    int ballCount, hookCount, circleUpgradeCount;
+    int knifeCount=1, circleUpgradeCount;
     public static int givingMoney = 1;
-
     [Header("Costs")]
     public int[] circleUpgradeCosts;
-    public int[] newBallCosts;
-    public int[] newHookCosts;
+    public int[] newKnifeCosts;
     public int[] incomeMoneyAmounts;
 
     int circleUpgradeCost;
-    int newBallCost;
-    int newHookCost;
+    int newKnifeCost;
     int incomeUpgradeCost;
     [Header("Max Counts")]
-    public int upgradeIncreaseAmount;
     public int maxIncomeCount;
-    public int maxBallCount;
-    public int maxHookCount;
+    public int maxKnifeCount;
     public int maxCircleUpgrade;
-    bool speedup;
-    public static float speed;
-    [Header("Hooks Speed")]
-    public float startSpeed;
-    public float fastSpeed;
-    public float fastSpeedTime;
 
+    bool speedup;
+    public static float knifespeed;
+    public static float balloonSpeed;
+    [Header("Knife Speed")]
+    public float startKnifeSpeed;
+    public float fastKnifeSpeed;
+    public float fastSpeedTime;
+    [Header("Balloon Speed")]
+    public int startBalloonGrowSpeed;
+    public int fastBalloonGrowSpeed;
+
+    public Vector3[] knifeLengths;
     public GameObject canvas;
     public static bool gameStarted;
     float timer;
@@ -51,80 +50,27 @@ public class LevelMain : MonoBehaviour
     #endregion
     void Start()
     {
+        Application.targetFrameRate = 60;
         gameStarted = false;
         speedup = false;
         circleUpgradeCost = circleUpgradeCosts[circleUpgradeCount];
         Buttons[0].transform.GetComponentInChildren<Text>().text = circleUpgradeCost.ToString();
 
-        incomeUpgradeCost = incomeMoneyAmounts[givingMoney-1];
+        incomeUpgradeCost = incomeMoneyAmounts[givingMoney - 1];
         Buttons[1].transform.GetComponentInChildren<Text>().text = incomeUpgradeCost.ToString();
 
-        newBallCost = newBallCosts[ballCount];
-        Buttons[2].transform.GetComponentInChildren<Text>().text = newBallCost.ToString();
+        newKnifeCost = newKnifeCosts[newKnifeCost];
+        Buttons[2].transform.GetComponentInChildren<Text>().text = newKnifeCost.ToString();
 
-        newHookCost = newHookCosts[hookCount];
-        Buttons[3].transform.GetComponentInChildren<Text>().text = newHookCost.ToString();
 
         EKTemplate.LevelManager.instance.startEvent.AddListener(() => StartEvent());
+        knifespeed = startKnifeSpeed;
+        balloonSpeed = startBalloonGrowSpeed;
 
-        #region Prefabs
-        if(PlayerPrefs.HasKey("CircleCount"))
-        {
-            circleUpgradeCount = PlayerPrefs.GetInt("CircleCount");
-            for (int i = 0; i < circleUpgradeCount; i++)
-            {
-                Circles[i].SetActive(true);
-                circleUpgradeCost = circleUpgradeCosts[i];
-                maxBallCount += upgradeIncreaseAmount;
-                maxHookCount += upgradeIncreaseAmount;
-                maxIncomeCount += 2;
-            }
-        }
-
-        if(PlayerPrefs.HasKey("GivingMoney"))
-        {
-            givingMoney = PlayerPrefs.GetInt("GivingMoney");
-            for (int i = 0; i < givingMoney; i++)
-            {
-                incomeUpgradeCost = incomeMoneyAmounts[i];
-                Buttons[1].transform.GetComponentInChildren<Text>().text = incomeUpgradeCost.ToString();
-            }
-        }
-        if(PlayerPrefs.HasKey("HookCount"))
-        {
-            hookCount = PlayerPrefs.GetInt("HookCount");
-            for (int i = 0; i < hookCount; i++)
-            {
-                GameObject hook = Instantiate(Resources.Load("Hook"), HookSpawnPoses[i].position, new Quaternion(0, 0, 0, 0)) as GameObject;
-                hook.transform.SetParent(HookSpawnPoses[i]);
-                hook.transform.rotation = new Quaternion(0, 0, 0, 0);
-                int rnd = Random.Range(0, 11);
-                hook.GetComponent<MeshRenderer>().material = Resources.Load("HookColors/Color " + rnd) as Material;
-                newHookCost = newHookCosts[hookCount];
-
-            }
-        }
-        if(PlayerPrefs.HasKey("BallCount"))
-        {
-            ballCount = PlayerPrefs.GetInt("BallCount");
-            for (int i = 0; i < ballCount; i++)
-            {
-                GameObject Ball = Instantiate(Resources.Load("Ball"), BallSpawnPoses[i].position, Quaternion.identity) as GameObject;
-                int rnd = Random.Range(0, 7);
-                Ball.GetComponent<MeshRenderer>().material = Resources.Load("BallColors/Ball " + rnd) as Material;
-                newBallCost = newBallCosts[ballCount];
-            }
-        }
-        #endregion
     }
     void StartEvent()
     {
         gameStarted = true;
-        for (int i = 0; i < HookSpawnPoses.Count; i++)
-        {
-            HookSpawnPoses[i].GetComponent<SplineFollower>().follow = true;
-
-        }
     }
     void Update()
     {
@@ -133,16 +79,18 @@ public class LevelMain : MonoBehaviour
             if (timer <= 0)
             {
                 speedup = false;
-                speed = startSpeed;
-
+                knifespeed = startKnifeSpeed;
+                balloonSpeed = startBalloonGrowSpeed;
             }
             else
             {
-                speed = fastSpeed;
+                knifespeed = fastKnifeSpeed;
+                balloonSpeed = fastBalloonGrowSpeed;
+
                 timer -= Time.deltaTime;
             }
         }
-        if(maxCircleUpgrade>circleUpgradeCount)
+        if (maxCircleUpgrade > circleUpgradeCount)
         {
             Buttons[0].transform.GetComponentInChildren<Text>().text = circleUpgradeCost.ToString();
             if (EKTemplate.GameManager.instance.money < circleUpgradeCost)
@@ -160,7 +108,7 @@ public class LevelMain : MonoBehaviour
         {
             ButtonClose(0);
         }
-        if (maxIncomeCount>givingMoney)
+        if (maxIncomeCount > givingMoney)
         {
             Buttons[1].transform.GetComponentInChildren<Text>().text = incomeUpgradeCost.ToString();
             if (EKTemplate.GameManager.instance.money < incomeUpgradeCost)
@@ -178,10 +126,10 @@ public class LevelMain : MonoBehaviour
         {
             ButtonClose(1);
         }
-        if (maxBallCount > ballCount)
+        if (maxKnifeCount > knifeCount)
         {
-            Buttons[2].transform.GetComponentInChildren<Text>().text = newBallCost.ToString();
-            if (EKTemplate.GameManager.instance.money < newBallCost)
+            Buttons[2].transform.GetComponentInChildren<Text>().text = newKnifeCost.ToString();
+            if (EKTemplate.GameManager.instance.money < newKnifeCost)
             {
                 Buttons[2].GetComponent<Image>().overrideSprite = CloseSprite[2];
                 Buttons[2].GetComponent<Button>().enabled = false;
@@ -196,26 +144,6 @@ public class LevelMain : MonoBehaviour
         {
             ButtonClose(2);
         }
-
-        if (maxHookCount > hookCount)
-        {
-            Buttons[3].transform.GetComponentInChildren<Text>().text = newHookCost.ToString();
-            if (EKTemplate.GameManager.instance.money < newHookCost)
-            {
-                Buttons[3].GetComponent<Image>().overrideSprite = CloseSprite[3];
-                Buttons[3].GetComponent<Button>().enabled = false;
-            }
-            else
-            {
-                Buttons[3].GetComponent<Image>().overrideSprite = OpenSprite[3];
-                Buttons[3].GetComponent<Button>().enabled = true;
-            }
-        }
-        else
-        {
-            ButtonClose(3);
-        }
-
     } 
     public void Clicker()
     {
@@ -225,7 +153,7 @@ public class LevelMain : MonoBehaviour
     }
     public void Addmoney()
     {
-        EKTemplate.GameManager.instance.AddMoney(500);
+        EKTemplate.GameManager.instance.AddMoney(50000);
     }
     public void Circle_Upgrade()
     {
@@ -235,57 +163,56 @@ public class LevelMain : MonoBehaviour
             EKTemplate.GameManager.instance.AddMoney(-circleUpgradeCost);
             Circles[circleUpgradeCount].SetActive(true);
             EKTemplate.CameraManager.instance.CameraMove();
+            for (int i = 0; i < Knifes.Length; i++)
+            {
+                Knifes[i].transform.DOScaleX(knifeLengths[circleUpgradeCount].x, 0.5f).SetEase(Ease.OutBack);
+            }
+            if(circleUpgradeCount==0)
+            {
+                Circles[0].SetActive(false);
+                Circles[1].SetActive(true);
+                Circles[2].SetActive(false);
+
+            }
+            else if(circleUpgradeCount >= 1)
+            {
+                fastBalloonGrowSpeed *= 10;
+                Circles[0].SetActive(false);
+                Circles[1].SetActive(false);
+                Circles[2].SetActive(true);
+            }
             circleUpgradeCount++;
             circleUpgradeCost = circleUpgradeCosts[circleUpgradeCount];
             Buttons[0].transform.GetComponentInChildren<Text>().text = circleUpgradeCost.ToString();
-            maxBallCount += upgradeIncreaseAmount;
-            maxHookCount += upgradeIncreaseAmount;
+            maxKnifeCount += 2;
             maxIncomeCount += 2;
             PlayerPrefs.SetInt("CircleCount", circleUpgradeCount);
 
         }
-
-
     }
     public void Income_Upgrade()
     {
-        if(EKTemplate.GameManager.instance.money>incomeUpgradeCost)
+        if (EKTemplate.GameManager.instance.money > incomeUpgradeCost)
         {
-            ButtonActionSame(1);  
+            ButtonActionSame(1);
 
             incomeUpgradeCost = incomeMoneyAmounts[givingMoney];
             Buttons[1].transform.GetComponentInChildren<Text>().text = incomeUpgradeCost.ToString();
             givingMoney++;
-            PlayerPrefs.SetInt("GivingMoney", givingMoney);
+            //PlayerPrefs.SetInt("GivingMoney", givingMoney);
         }
     }
-    public void New_Ball()
+    public void New_Knife()
     {
-        if(EKTemplate.GameManager.instance.money >newBallCost)
+        if(EKTemplate.GameManager.instance.money>newKnifeCost)
         {
             ButtonActionSame(2);
-            GameObject Ball = Instantiate(Resources.Load("Ball"), BallSpawnPoses[ballCount].position, Quaternion.identity) as GameObject;
-            int rnd = Random.Range(0, 7);
-            Ball.GetComponent<MeshRenderer>().material = Resources.Load("BallColors/Ball " + rnd) as Material;
-            ballCount++;
-            newBallCost = newBallCosts[ballCount];
-            PlayerPrefs.SetInt("BallCount", ballCount);
-        }
-    }
-    public void New_Hook()
-    {
-        if (EKTemplate.GameManager.instance.money > newHookCost)
-        {
-            ButtonActionSame(3);
-            EKTemplate.GameManager.instance.AddMoney(-newHookCost);
-            GameObject hook = Instantiate(Resources.Load("Hook"), HookSpawnPoses[hookCount].position, new Quaternion(0,0,0,0)) as GameObject;
-            hook.transform.SetParent(HookSpawnPoses[hookCount]);
-            hook.transform.rotation = new Quaternion(0,0,0,0);
-            int rnd = Random.Range(0, 11);
-            hook.GetComponent<MeshRenderer>().material = Resources.Load("HookColors/Color " + rnd) as Material;
-            hookCount++;
-            newHookCost = newHookCosts[hookCount];
-            PlayerPrefs.SetInt("HookCount", hookCount);
+            Knifes[knifeCount].SetActive(true);
+            newKnifeCost = newKnifeCosts[knifeCount];
+            Buttons[2].transform.GetComponentInChildren<Text>().text = newKnifeCost.ToString();
+            knifeCount++;
+
+            
         }
     }
     void ButtonClose(int s)

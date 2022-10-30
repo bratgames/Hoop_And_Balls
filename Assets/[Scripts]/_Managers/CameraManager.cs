@@ -19,14 +19,14 @@ namespace EKTemplate
         #endregion
         private void Start()
         {
-            camMovecount = PlayerPrefs.GetInt("CameraPos");
+            //camMovecount = PlayerPrefs.GetInt("CameraPos");
             transform.position = cameramoves[camMovecount];
         }
         public void CameraMove()
         {
             camMovecount++;
             transform.DOMove(cameramoves[camMovecount],1);
-            PlayerPrefs.SetInt("CameraPos", camMovecount);
+            //PlayerPrefs.SetInt("CameraPos", camMovecount);
         }
     }
 

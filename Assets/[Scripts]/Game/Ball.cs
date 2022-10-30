@@ -25,8 +25,7 @@ public class Ball : MonoBehaviour
         Hole H = other.GetComponent<Hole>();
         if(H!=null)
         {
-            GameObject text = Instantiate(Resources.Load("MoneyText"), new Vector3(transform.position.x,transform.position.y+1,transform.position.z), Quaternion.identity) as GameObject;
-            text.GetComponentInChildren<Text>().text = "$" + LevelMain.givingMoney;
+
         }
     }
     private void OnTriggerExit(Collider other)

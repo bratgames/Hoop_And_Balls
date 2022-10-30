@@ -14,7 +14,7 @@ public class Hole : MonoBehaviour
         {
             onetime = false;
             sf = GetComponent<SplineFollower>();
-            LevelMain.speed = sf.followSpeed;
+            LevelMain.knifespeed = sf.followSpeed;
         }
     }
     private void Update()
@@ -26,7 +26,7 @@ public class Hole : MonoBehaviour
                 sf.follow = true;
                 onetime = true;
             }
-            sf.followSpeed = LevelMain.speed;
+            sf.followSpeed = LevelMain.knifespeed;
         }
 
     }
