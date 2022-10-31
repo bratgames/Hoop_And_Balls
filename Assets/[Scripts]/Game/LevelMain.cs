@@ -7,7 +7,7 @@ using DG.Tweening;
 using UnityEngine.SceneManagement;
 public class LevelMain : MonoBehaviour
 {
-    public GameObject[] Knifes, Circles, Buttons;    
+    public GameObject[] Knifes, Circles, Buttons,BalloonSpawners;  
     public Sprite[] OpenSprite, CloseSprite;
     int knifeCount=1, circleUpgradeCount;
     public static int givingMoney = 1;
@@ -73,30 +73,40 @@ public class LevelMain : MonoBehaviour
         if (PlayerPrefs.HasKey("level0CircleCount"))
         {
             circleUpgradeCount = PlayerPrefs.GetInt("level0CircleCount");
-            if (circleUpgradeCount == 1)
+            if (circleUpgradeCount >= 6&&circleUpgradeCount<9)
             {
                 Circles[0].SetActive(false);
                 Circles[1].SetActive(true);
                 Circles[2].SetActive(false);
+                maxCircleUpgrade += 3;
+                maxKnifeCount += 4;
+                maxIncomeCount += 2;
+                for (int i = 0; i < Knifes.Length; i++)
+                {
+                    Knifes[i].transform.DOScaleX(knifeLengths[0].x, 0f);
+                }
             }
-            else if (circleUpgradeCount >= 2)
+            else if (circleUpgradeCount >= 9)
             {
                 fastBalloonGrowSpeed *= 10;
                 Circles[0].SetActive(false);
                 Circles[1].SetActive(false);
                 Circles[2].SetActive(true);
-            }
-            circleUpgradeCost = circleUpgradeCosts[circleUpgradeCount];
-            Buttons[0].transform.GetComponentInChildren<Text>().text = circleUpgradeCost.ToString();
-            for (int i = 0; i < Knifes.Length; i++)
-            {
-                Knifes[i].transform.DOScaleX(knifeLengths[circleUpgradeCount-1].x, 0f);
+                maxCircleUpgrade += 7;
+                maxKnifeCount += 8;
+                maxIncomeCount += 4;
+                for (int i = 0; i < Knifes.Length; i++)
+                {
+                    Knifes[i].transform.DOScaleX(knifeLengths[1].x, 0f);
+                }
             }
             for (int i = 0; i < circleUpgradeCount; i++)
             {
-                maxKnifeCount += 2;
-                maxIncomeCount += 2;
+                BalloonSpawners[i].SetActive(true);
+
             }
+            circleUpgradeCost = circleUpgradeCosts[circleUpgradeCount];
+            Buttons[0].transform.GetComponentInChildren<Text>().text = circleUpgradeCost.ToString();
         }
 
         if (PlayerPrefs.HasKey("level0GivingMoney"))
@@ -133,12 +143,19 @@ public class LevelMain : MonoBehaviour
                 speedup = false;
                 knifespeed = startKnifeSpeed;
                 balloonSpeed = startBalloonGrowSpeed;
+                for (int i = 0; i < knifeCount; i++)
+                {
+                    Knifes[i].transform.GetChild(0).gameObject.SetActive(false);
+                }
             }
             else
             {
                 knifespeed = fastKnifeSpeed;
                 balloonSpeed = fastBalloonGrowSpeed;
-
+                for (int i = 0; i < knifeCount; i++)
+                {
+                    Knifes[i].transform.GetChild(0).gameObject.SetActive(true);
+                }
                 timer -= Time.deltaTime;
             }
         }
@@ -196,7 +213,7 @@ public class LevelMain : MonoBehaviour
         {
             ButtonClose(2);
         }
-        if (circleUpgradeCount == 2&&knifeCount == 8&&givingMoney == 8&&!nextlevel)
+        if (circleUpgradeCount == 13&&knifeCount == 16&&givingMoney == 8&&!nextlevel)
         {
             nextlevel = true;
             StartCoroutine(delay());
@@ -220,10 +237,13 @@ public class LevelMain : MonoBehaviour
     }
     public void Next_Scene()
     {
-        PlayerPrefs.DeleteAll();
-        EKTemplate.GameManager.instance.money = 0;
-        SceneManager.LoadScene(1);
-        EKTemplate.GameManager.instance.LevelPrefs();
+        if(EKTemplate.GameManager.instance.money>50000)
+        {
+            PlayerPrefs.DeleteAll();
+            EKTemplate.GameManager.instance.money = 0;
+            SceneManager.LoadScene(1);
+            EKTemplate.GameManager.instance.LevelPrefs();
+        }
     }
     public void Circle_Upgrade()
     {
@@ -231,30 +251,45 @@ public class LevelMain : MonoBehaviour
         {
             ButtonActionSame(0);
             EKTemplate.GameManager.instance.AddMoney(-circleUpgradeCost);
-            Circles[circleUpgradeCount].SetActive(true);
-            EKTemplate.CameraManager.instance.CameraMove();
-            for (int i = 0; i < Knifes.Length; i++)
+            if (circleUpgradeCount==5||circleUpgradeCount == 8)
             {
-                Knifes[i].transform.DOScaleX(knifeLengths[circleUpgradeCount].x, 0.5f).SetEase(Ease.OutBack);
+                EKTemplate.CameraManager.instance.CameraMove();
+
+                if (circleUpgradeCount == 5)
+                {
+                    for (int i = 0; i < Knifes.Length; i++)
+                    {
+                        Knifes[i].transform.DOScaleX(knifeLengths[0].x, 0.5f).SetEase(Ease.OutBack);
+                    }
+                    Circles[0].SetActive(false);
+                    Circles[1].SetActive(true);
+                    Circles[2].SetActive(false);
+                    maxCircleUpgrade += 3;
+                }
+                else if (circleUpgradeCount >= 8)
+                {
+                    for (int i = 0; i < Knifes.Length; i++)
+                    {
+                        Knifes[i].transform.DOScaleX(knifeLengths[1].x, 0.5f).SetEase(Ease.OutBack);
+                    }
+                    fastBalloonGrowSpeed *= 10;
+                    Circles[0].SetActive(false);
+                    Circles[1].SetActive(false);
+                    Circles[2].SetActive(true);
+                    maxCircleUpgrade += 4;
+
+                }
+
+                maxKnifeCount += 4;
+                maxIncomeCount += 2;
             }
-            if(circleUpgradeCount==0)
+            else
             {
-                Circles[0].SetActive(false);
-                Circles[1].SetActive(true);
-                Circles[2].SetActive(false);
-            }
-            else if(circleUpgradeCount >= 1)
-            {
-                fastBalloonGrowSpeed *= 10;
-                Circles[0].SetActive(false);
-                Circles[1].SetActive(false);
-                Circles[2].SetActive(true);
+                BalloonSpawners[circleUpgradeCount].SetActive(true);
             }
             circleUpgradeCount++;
             circleUpgradeCost = circleUpgradeCosts[circleUpgradeCount];
             Buttons[0].transform.GetComponentInChildren<Text>().text = circleUpgradeCost.ToString();
-            maxKnifeCount += 2;
-            maxIncomeCount += 2;
             PlayerPrefs.SetInt("level0CircleCount", circleUpgradeCount);
 
         }
@@ -264,7 +299,7 @@ public class LevelMain : MonoBehaviour
         if (EKTemplate.GameManager.instance.money > incomeUpgradeCost)
         {
             ButtonActionSame(1);
-
+            EKTemplate.GameManager.instance.AddMoney(-incomeUpgradeCost);
             incomeUpgradeCost = incomeMoneyAmounts[givingMoney];
             Buttons[1].transform.GetComponentInChildren<Text>().text = incomeUpgradeCost.ToString();
             givingMoney++;
@@ -277,6 +312,8 @@ public class LevelMain : MonoBehaviour
         {
             ButtonActionSame(2);
             Knifes[knifeCount].SetActive(true);
+            EKTemplate.GameManager.instance.AddMoney(-newKnifeCost);
+
             newKnifeCost = newKnifeCosts[knifeCount];
             Buttons[2].transform.GetComponentInChildren<Text>().text = newKnifeCost.ToString();
             knifeCount++;
