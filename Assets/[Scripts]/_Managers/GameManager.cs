@@ -5,6 +5,8 @@ namespace EKTemplate
 {
     public class GameManager : MonoBehaviour
     {
+        public static int scenelevelc;
+
         [Header("LEVEL'S"), Space(5)]
         public int level = -1;
         public int levelCount = 10;
@@ -15,7 +17,6 @@ namespace EKTemplate
 
         [Header("TEST MODE"), Space(5)]
         public bool simulatePhone;
-
         #region Singleton
         public static GameManager instance = null;
         private void Awake()
@@ -30,9 +31,22 @@ namespace EKTemplate
             {
                 DestroyImmediate(this);
             }
+
         }
         #endregion
-
+        private void Start()
+        {
+            if (PlayerPrefs.HasKey("Levelc"))
+            {
+                scenelevelc = PlayerPrefs.GetInt("Levelc");
+                OpenScene(scenelevelc);
+            }
+        }
+        public void LevelPrefs()
+        {
+            scenelevelc++;
+            PlayerPrefs.SetInt("Levelc", scenelevelc);
+        }
         private void GetDependencies()
         {
             //if level variable set -1, game run as mobile

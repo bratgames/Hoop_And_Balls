@@ -12,7 +12,7 @@ public class Balloon : MonoBehaviour
 
     void Update()
     {
-        if(LevelMain.gameStarted&&transform.localScale.y<5)
+        if(LevelMain.gameStarted&&transform.localScale.y<2.5f)
         {
             speed += LevelMain.balloonSpeed * Time.deltaTime / 100000;
             transform.localScale = new Vector3(1, transform.localScale.y + speed, 1);
