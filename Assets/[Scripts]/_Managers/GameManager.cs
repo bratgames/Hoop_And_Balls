@@ -36,6 +36,8 @@ namespace EKTemplate
         #endregion
         private void Start()
         {
+            GameAnalyticsSDK.GameAnalytics.Initialize();
+
             if (PlayerPrefs.HasKey("Levelc"))
             {
                 scenelevelc = PlayerPrefs.GetInt("Levelc");
