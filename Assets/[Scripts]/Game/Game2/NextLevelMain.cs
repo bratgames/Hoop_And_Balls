@@ -74,7 +74,7 @@ public class NextLevelMain : MonoBehaviour
             for (int i = 0; i < circleUpgradeCount; i++)
             {
                 Circles[i].SetActive(true);
-                circleUpgradeCost = circleUpgradeCosts[i];
+                circleUpgradeCost = circleUpgradeCosts[i+1];
                 maxBallCount += upgradeIncreaseAmount;
                 maxHookCount += upgradeIncreaseAmount;
                 maxIncomeCount += 2;
@@ -225,7 +225,7 @@ public class NextLevelMain : MonoBehaviour
     }
     public void Addmoney()
     {
-        EKTemplate.GameManager.instance.AddMoney(500);
+        EKTemplate.GameManager.instance.AddMoney(5000);
     }
     public void Circle_Upgrade()
     {
@@ -234,6 +234,7 @@ public class NextLevelMain : MonoBehaviour
             ButtonActionSame(0);
             EKTemplate.GameManager.instance.AddMoney(-circleUpgradeCost);
             Circles[circleUpgradeCount].SetActive(true);
+            Circles[circleUpgradeCount].transform.GetChild(1).GetComponent<Collider>().enabled = true;
             EKTemplate.CameraManager.instance.CameraMove();
             circleUpgradeCount++;
             circleUpgradeCost = circleUpgradeCosts[circleUpgradeCount];
@@ -242,16 +243,14 @@ public class NextLevelMain : MonoBehaviour
             maxHookCount += upgradeIncreaseAmount;
             maxIncomeCount += 2;
             PlayerPrefs.SetInt("CircleCount", circleUpgradeCount);
-
         }
-
-
     }
     public void Income_Upgrade()
     {
         if(EKTemplate.GameManager.instance.money>incomeUpgradeCost)
         {
-            ButtonActionSame(1);  
+            ButtonActionSame(1);
+            EKTemplate.GameManager.instance.AddMoney(-incomeUpgradeCost);
 
             incomeUpgradeCost = incomeMoneyAmounts[givingMoney];
             Buttons[1].transform.GetComponentInChildren<Text>().text = incomeUpgradeCost.ToString();
@@ -264,9 +263,12 @@ public class NextLevelMain : MonoBehaviour
         if(EKTemplate.GameManager.instance.money >newBallCost)
         {
             ButtonActionSame(2);
+            EKTemplate.GameManager.instance.AddMoney(-newBallCost);
+
             GameObject Ball = Instantiate(Resources.Load("Ball"), BallSpawnPoses[ballCount].position, Quaternion.identity) as GameObject;
             int rnd = Random.Range(0, 7);
             Ball.GetComponent<MeshRenderer>().material = Resources.Load("BallColors/Ball " + rnd) as Material;
+            Ball.GetComponent<Collider>().enabled = true;
             ballCount++;
             newBallCost = newBallCosts[ballCount];
             PlayerPrefs.SetInt("BallCount", ballCount);
